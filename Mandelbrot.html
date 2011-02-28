@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <title>Mandelbrot</title>
+	<style type="text/css">
+      canvas { border: 1px solid black; margin:2px; }
+    </style>
+  </head>
+  <body>
+	<script>
+	var jsFractal = jsFractal || {};
+	jsFractal.Mandelbrot = function(imgHeight, imgWidth, minReal, maxReal, minImainary, maxIterations, canvasElement){
+		var imageHeight = imgHeight;
+		var imageWidth = imgWidth;
+		var minReal = minReal;
+		var maxReal = maxReal;
+		var minImaginary = minImainary;
+		var maxImaginary = minImaginary+(maxReal-minReal)*imageHeight/imageWidth;
+		var Re_factor = (maxReal-minReal)/(imageWidth-1);
+		var Im_factor = (maxImaginary-minImaginary)/(imageHeight-1);
+		var MaxIterations = maxIterations;
+		var canvasElm = canvasElement;
+		
+		this.draw = function(){
+			var ctx = canvasElm.getContext('2d');
+			var imgData = ctx.createImageData(imageWidth, imageHeight);
+			var pixels = imgData.data;
+			var drawPoint = function(xPos,yPos){
+				var arrayPos = (xPos + (yPos * imageWidth))*4;
+				pixels[arrayPos] = 0;
+				pixels[arrayPos+1] = 0;
+				pixels[arrayPos+2] = 0;
+				pixels[arrayPos+3] = 255;
+			}
+			var drawOutsidePoint = function(xPos, yPos, iterations){
+				var arrayPos = (xPos + (yPos * imageWidth))*4;
+				pixels[arrayPos] = iterations/MaxIterations * 255;
+				pixels[arrayPos+1] = 0;
+				pixels[arrayPos+2] = 0;
+				pixels[arrayPos+3] = 255;
+			}
+
+
+			for(var y=0; y<imageHeight; ++y){
+				var c_im = maxImaginary - y*Im_factor;
+				for(var x=0; x<imageWidth; ++x)
+				{
+					var c_re = minReal + x*Re_factor;
+
+					// Calculate whether c belongs to the Mandelbrot set or
+					// not and draw a pixel at coordinates (x,y) accordingly
+					var Z_re = c_re; 
+					var Z_im = c_im; 
+					var isInside = true;
+					for(var n=0; n<MaxIterations; ++n)
+					{
+						//if( [[[Absolute value of Z]]] > 2)
+						//if(Math.sqrt(Z_re*Z_re + Z_im*Z_im) > 2)
+						if(Z_re*Z_re + Z_im*Z_im > 4)
+						{
+							isInside = false;
+							drawOutsidePoint(x, y, n);
+							break;
+						}
+						
+						
+						/* Z = Z2 + c */
+						var Z_im2 = Z_im*Z_im;
+						Z_im = 2 * Z_re * Z_im + c_im;
+						Z_re = Z_re *Z_re - Z_im2 + c_re;
+		
+						
+						
+					}
+					if(isInside) { drawPoint(x, y); }
+
+					
+				}
+			}
+			
+			ctx.putImageData(imgData, 0,0);
+
+		}
+		
+	};
+
+window.onload = function(){
+	var width = 150,
+		height = 150,
+		drawAllIterations = true,
+		iterations = 12
+		
+	if(drawAllIterations){
+		i = 0;
+	}
+	else{
+		i = iterations  - 1;
+	}
+		for(; i<iterations; ++i){
+			var canvasElem = document.createElement("canvas");
+
+			canvasElem.setAttribute("width", width);
+			canvasElem.setAttribute("height", height);
+			document.body.appendChild(canvasElem);
+
+										//imgHeight, imgWidth, minReal, maxReal, minImainary, maxIterations, canvasElement)
+			var mb = new jsFractal.Mandelbrot(width, height, -2.0, 1.0, -1.2, i+1, canvasElem);
+			mb.draw();
+		}
+	
+}
+
+    </script>
+  </body>
+</html>
